@@ -161,11 +161,11 @@ be set if type is PARTNER.`,
 DEDICATED. Possible values: ["DEDICATED", "PARTNER", "PARTNER_PROVIDER"]`,
 			},
 			"mtu": {
-				Type:	schema.TypeInt,
-				Computed: true,
-				Optional: true,
-				ValidateFunc: validation.IntInSlice([]string{1440,1500}, false),
-				Description: `Maximum Transmission Unit (MTU), in bytes, of packets passing through this interconnect attachment. Only 1440 and 1500 are allowed. If not specified, the value will default to 1440.`
+				Type:         schema.TypeInt,
+				Computed:     true,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]string{1440, 1500}, false),
+				Description:  `Maximum Transmission Unit (MTU), in bytes, of packets passing through this interconnect attachment. Only 1440 and 1500 are allowed. If not specified, the value will default to 1440.`,
 			},
 			"vlan_tag8021q": {
 				Type:     schema.TypeInt,
