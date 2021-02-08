@@ -160,6 +160,13 @@ be set if type is PARTNER.`,
 				Description: `The type of InterconnectAttachment you wish to create. Defaults to
 DEDICATED. Possible values: ["DEDICATED", "PARTNER", "PARTNER_PROVIDER"]`,
 			},
+			"mtu": {
+				Type:	schema.TypeInt,
+				Computed: true,
+				Optional: true,
+				ValidateFunc: validation.IntInSlice([]string{1440,1500}, false),
+				Description: `Maximum Transmission Unit (MTU), in bytes, of packets passing through this interconnect attachment. Only 1440 and 1500 are allowed. If not specified, the value will default to 1440.`
+			},
 			"vlan_tag8021q": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -266,6 +273,12 @@ func resourceComputeInterconnectAttachmentCreate(d *schema.ResourceData, meta in
 		return err
 	} else if v, ok := d.GetOkExists("description"); !isEmptyValue(reflect.ValueOf(descriptionProp)) && (ok || !reflect.DeepEqual(v, descriptionProp)) {
 		obj["description"] = descriptionProp
+	}
+	mtuProp, err := expandComputeInterconnectAttachmentMtu(d.Get("mtu"), d, config)
+	if err != nil {
+		return err
+	} else if v, ok := d.getOkExists("mtu"); !isEmptyValue(reflect.ValueOf(mtuProp)) && (ok || !reflect.DeepEqual(v, mtuProp)) {
+		obj["mtu"] = mtuProp
 	}
 	bandwidthProp, err := expandComputeInterconnectAttachmentBandwidth(d.Get("bandwidth"), d, config)
 	if err != nil {
@@ -415,6 +428,9 @@ func resourceComputeInterconnectAttachmentRead(d *schema.ResourceData, meta inte
 	if err := d.Set("description", flattenComputeInterconnectAttachmentDescription(res["description"], d, config)); err != nil {
 		return fmt.Errorf("Error reading InterconnectAttachment: %s", err)
 	}
+	if err := d.Set("mtu", flattenComputeInterconnectAttachmentMtu(res["mtu"], d, config)); err != nil {
+		return fmt.Errorf("Error reading InterconnectAttachment: %s", err)
+	}
 	if err := d.Set("bandwidth", flattenComputeInterconnectAttachmentBandwidth(res["bandwidth"], d, config)); err != nil {
 		return fmt.Errorf("Error reading InterconnectAttachment: %s", err)
 	}
@@ -488,6 +504,12 @@ func resourceComputeInterconnectAttachmentUpdate(d *schema.ResourceData, meta in
 		return err
 	} else if v, ok := d.GetOkExists("description"); !isEmptyValue(reflect.ValueOf(v)) && (ok || !reflect.DeepEqual(v, descriptionProp)) {
 		obj["description"] = descriptionProp
+	}
+	mtuProp, err := expandComputeInterconnectAttachmentMtu(d.Get("mtu"), d, config)
+	if err != nil {
+		return err
+	} else if v, ok := d.GetOkExists("mtu"); !isEmptyValue(reflect.ValueOf(v)) && (ok || !reflect.DeepEqual(v, mtuProp)) {
+		obj["mtu"] = mtuProp
 	}
 	bandwidthProp, err := expandComputeInterconnectAttachmentBandwidth(d.Get("bandwidth"), d, config)
 	if err != nil {
@@ -622,6 +644,23 @@ func flattenComputeInterconnectAttachmentDescription(v interface{}, d *schema.Re
 	return v
 }
 
+func flattenComputeInterconnectAttachmentMtu(v interface{}, d *schema.ResourceData, config *Config) interface{} {
+	// Handles the string fixed64 format
+	if strVal, ok := v.(string); ok {
+		if intVal, err := strconv.ParseInt(strVal, 10, 64); err == nil {
+			return intVal
+		}
+	}
+
+	// number values are represented as float64
+	if floatVal, ok := v.(float64); ok {
+		intVal := int(floatVal)
+		return intVal
+	}
+
+	return v // let terraform core handle it otherwise
+}
+
 func flattenComputeInterconnectAttachmentBandwidth(v interface{}, d *schema.ResourceData, config *Config) interface{} {
 	return v
 }
@@ -728,6 +767,10 @@ func expandComputeInterconnectAttachmentInterconnect(v interface{}, d TerraformR
 }
 
 func expandComputeInterconnectAttachmentDescription(v interface{}, d TerraformResourceData, config *Config) (interface{}, error) {
+	return v, nil
+}
+
+func expandComputeInterconnectAttachmentMtu(v interface{}, d TerraformResourceData, config *Config) (interface{}, error) {
 	return v, nil
 }
 
